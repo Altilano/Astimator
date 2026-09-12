@@ -3,8 +3,8 @@ import numpy as np
 
 def build_space(nix, im_size, waist):
     """Thin wrapper around beam.Space so pipeline.py doesn't need `from beam import *`."""
-    from beam import Space  # your existing beam.py
-    b1 = Space(nix, im_size)
+    from structured_optics import Beam  # your existing beam.py
+    b1 = Beam(nix, im_size)
     b1.waist = waist
     return b1
 
@@ -24,7 +24,7 @@ def build_basis_matrix(b1, N, waist):
     i.e. set_Bmat[k] from the original notebooks.
     """
     b1.waist = waist
-    basis = b1.hg_basis(N, norm="max1").transpose(0, 1, 2, 3)
+    basis = b1.hg_basis(N, norm="max1")
     B = np.array([basis[i, j].ravel() for i in range(N + 1) for j in range(N + 1)]).T
     return B
 

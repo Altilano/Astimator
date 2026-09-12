@@ -5,7 +5,7 @@ class Dataset:
     """Loads the .npz produced by your image-processing step (images + index [+ coefs])."""
 
     def __init__(self, config):
-        from utils import normalize  # your existing utils.py
+        from .utils import normalize  # your existing utils.py
 
         self._normalize = normalize
         path = config.parent_folder + config.mode_folder + config.mode_file

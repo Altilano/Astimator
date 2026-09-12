@@ -6,6 +6,7 @@ from .basis import build_space, build_hg_grids, build_basis_matrix, build_stacke
 from .optics import compute_transform_phases
 from .parametrization import vector_to_matrix_np
 from .data import Dataset
+from .utils import normalize
 
 
 class Estimator:

@@ -2,7 +2,14 @@
 Example driver. Everything that used to be scattered/duplicated across your
 two notebooks now boils down to editing the CONFIG block below.
 """
+import sys
+from pathlib import Path
+
+# Calculate the parent directory and add it to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from hg_lens_estimator import EstimationConfig, TransformSpec, Estimator
+
 
 # ── CONFIG: this is the only block you should need to touch ──────────────────
 cfg = EstimationConfig(
@@ -18,7 +25,7 @@ cfg = EstimationConfig(
         # add more TransformSpec entries here if you want n_transforms > 3
     ],
 
-    N=12,                    # <- max Hermite-Gaussian order, any positive int
+    N=10,                    # <- max Hermite-Gaussian order, any positive int
     waist=2e-4,
     lamb=800e-9,
     z0=20e-2,
