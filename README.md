@@ -1,11 +1,17 @@
-# hg_estimator
+# Astimator
 
-Estimate Hermite-Gauss coefficients from a set of intensity images taken at different
+The ASTIgmatic estiMATOR. Estimate Hermite-Gauss coefficients from a set of intensity images taken at different
 lens tilts / distances.
 
 ```python
 import numpy as np
 from hg_estimator import CoefficientEstimator, compute_phases
+from structured_optics import Beam, tools.hg_basis
+
+wavelength = 633e-9
+
+beam = Beam(nix = 5e-3, Dx=256,
+            waist=1e-3, lamb=wavelength)
 
 # basis from structured_optics (same pixel grid as the images)
 basis = hg_basis(beam, N, norm1=True)
@@ -14,7 +20,7 @@ est = CoefficientEstimator(basis, N)           # basis is processed once, reuse 
 
 phix, phiy = zip(*[
     compute_phases("biconvex", th, z, waistx=700e-6, waisty=700e-6,
-                   lamb=633e-9, z0=1.18, f0=0.30, n=1.5151)
+                   lamb=wavelength, z0=1.18, f0=0.30, n=1.5151)
     for z, th in [(0.30, 0), (0.22, 20)]
 ])
 
