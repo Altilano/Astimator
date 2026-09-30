@@ -1,88 +1,32 @@
-# hg_lens_estimator
+# hg_estimator
 
-Reorganized version of your two estimation notebooks
-(`estimate_3p_paper2026.ipynb` [JAX] and `estimate_3p_pytorch_tiltelens.ipynb` [PyTorch]).
+Estimate Hermite-Gauss coefficients from a set of intensity images taken at different
+lens tilts / distances.
 
-Both notebooks did the same thing: load an image made of 2 or 3 stacked
-sub-images (each corresponding to a lens transformation: `forw`, `tilt`,
-`gouy`), build a Hermite-Gaussian basis, and fit complex mode coefficients
-by minimizing a negative-log-likelihood with L-BFGS-B, using autodiff for
-the gradient. The only real differences between the two notebooks were:
+```python
+import numpy as np
+from hg_estimator import CoefficientEstimator, compute_phases
 
-1. which autodiff library computed the gradient (JAX vs PyTorch),
-2. whether 2 or 3 sub-images were stacked into the loss.
+# basis from structured_optics (same pixel grid as the images)
+basis = hg_basis(beam, N, norm1=True)
 
-This package pulls that shared logic into one place and turns those two
-differences into config fields.
+est = CoefficientEstimator(basis, N)           # basis is processed once, reuse it
 
-## Layout
+phix, phiy = zip(*[
+    compute_phases("biconvex", th, z, waistx=700e-6, waisty=700e-6,
+                   lamb=633e-9, z0=1.18, f0=0.30, n=1.5151)
+    for z, th in [(0.30, 0), (0.22, 20)]
+])
 
-```
-hg_lens_estimator/
-  config.py            EstimationConfig / TransformSpec  <- what you edit
-  backends/
-    base.py            Backend interface + get_backend()
-    jax_backend.py      JAX implementation (autodiff, jit)
-    torch_backend.py    PyTorch implementation (autodiff)
-  optics.py            wraps your existing calculate_ax_ay (utils.py)
-  basis.py             wraps your existing beam.Space / hg_basis (beam.py)
-  parametrization.py   vector <-> coefficient-matrix (numpy, shared)
-  data.py              loads the .npz dataset, replaces the old get_pic()
-                       global-variable hack with a plain Dataset/ImageSample
-  pipeline.py          Estimator: ties it all together, the optimisation loop
-examples/
-  run_estimation.py    the only file you edit day-to-day
+result = est.estimate([img1, img2], phix, phiy, rng=0)
+result.coefs      # (N+1, N+1) complex, unit norm, C[0,0] real
+result.loss       # final negative log-likelihood
 ```
 
-`beam.py` and `utils.py` are still your existing files -- this package
-imports `Space`, `calculate_ax_ay`, and `normalize` from them exactly as the
-notebooks did, so nothing about your optics/beam code needs to change.
+Repetitions / several basis waists are up to the caller, e.g.:
 
-## What changes for each switch
+```python
+best = min((est.estimate(imgs, phix, phiy, rng=s) for s in range(5)), key=lambda r: r.loss)
+```
 
-All of it is one `EstimationConfig(...)` call in `examples/run_estimation.py`:
-
-| You want to...                  | Change this field                          |
-|----------------------------------|---------------------------------------------|
-| JAX ↔ PyTorch                    | `backend="jax"` / `backend="torch"`         |
-| NVIDIA ↔ AMD GPU                 | nothing in code -- install the matching ROCm build of torch or jax; keep `device="cuda"` (both libraries expose ROCm through the same `"cuda"` device string) or `device="auto"` |
-| N-picture estimation (any N ≥ 2) | `n_transforms=<int>`                        |
-| Max Hermite-Gaussian order       | `N=<int>`                                   |
-
-`n_transforms` slices `active_transforms()` from the `transforms` list, so
-with `n_transforms=2` only `forw` and `tilt` (the first two entries) are
-loaded, phase-shifted, stacked, and included in the loss -- matching the
-`_2IM` runs in your paper notebook. `n_transforms` can be any integer ≥ 2
-(not just 2 or 3) as long as `transforms` has at least that many entries --
-add more `TransformSpec`s (e.g. a second tilt angle, another distance) if you
-want to fit against 4, 5, ... images at once. `EstimationConfig` validates
-this at construction time and raises a clear `ValueError` if `n_transforms`
-is too small or `transforms` is too short. Reorder the list if you want a
-different subset used first.
-
-`N` (max HG order) is a plain config field used everywhere: basis size,
-valid-mode mask, coefficient parametrization, and the loss -- change it in
-one place and everything else follows.
-
-## Notes / things worth checking before you trust it fully
-
-- I could not execute this against your actual `beam.py`/`utils.py`/data
-  files (they weren't uploaded, and `jax`/`torch` aren't installed in this
-  sandbox), so the file has not been run end-to-end. The math in
-  `backends/jax_backend.py` and `backends/torch_backend.py` is copied
-  essentially line-for-line from your two notebooks (same parametrization,
-  same loss, same restart/L-BFGS-B loop) — only the "how many transforms"
-  loop was generalized from hardcoded 2 or 3 to `n_transforms`. Please run
-  it once on a known case and compare against your old results before
-  relying on it.
-- The JAX gouy phase (`ax_gouy`/`ay_gouy`) in your paper notebook was built
-  but the loss only ever concatenated `[I0, I1]` (2 images) even though 3
-  were computed. This refactor makes that explicit and controllable via
-  `n_transforms` instead of implicit in which variables happened to be
-  concatenated.
-- The waist-scan feature (`waist_scan`, looping over multiple candidate
-  waists) is preserved but optional; both your recent notebooks were
-  effectively running it with a single-element list.
-- AMD GPU support depends entirely on you having ROCm-enabled builds of
-  `torch`/`jax` installed; JAX's ROCm support is less mature/complete than
-  PyTorch's, so for AMD hardware `backend="torch"` is the safer bet.
+Nothing is written to disk; saving is up to you.
