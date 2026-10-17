@@ -5,7 +5,7 @@ import torch
 
 
 def resolve_device(device="auto"):
-    """'auto' -> cuda if available (NVIDIA CUDA or AMD ROCm builds), else cpu."""
+    """'auto' -> gpu if available (NVIDIA CUDA or AMD ROCm builds), else cpu."""
     if device == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device)

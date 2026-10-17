@@ -29,8 +29,8 @@ from .torch_engine import resolve_device
 @dataclass
 class HGBasis:
     basis: torch.Tensor   # (n_pix, n_modes) complex128, one column per mode
-    ni: torch.Tensor      # (n_modes,) long, order n along x
-    mi: torch.Tensor      # (n_modes,) long, order m along y
+    ns: torch.Tensor      # (n_modes,) long, order n along x
+    ms: torch.Tensor      # (n_modes,) long, order m along y
     N: int
     shape: tuple          # (H, W)
 
@@ -79,20 +79,20 @@ def make_hg_basis(N, shape, pixel_size, waist, norm="max1", device="auto", cente
         psi_y = psi_y / psi_y.pow(2).sum(dim=1, keepdim=True).sqrt()
 
     pairs = [(n, m) for n in range(N + 1) for m in range(N + 1 - n)]   # n + m <= N
-    ni = torch.tensor([p[0] for p in pairs], dtype=torch.long, device=dev)
-    mi = torch.tensor([p[1] for p in pairs], dtype=torch.long, device=dev)
+    ns = torch.tensor([p[0] for p in pairs], dtype=torch.long, device=dev)
+    ms = torch.tensor([p[1] for p in pairs], dtype=torch.long, device=dev)
 
-    modes = psi_y[mi][:, :, None] * psi_x[ni][:, None, :]              # (n_modes, H, W)
+    modes = psi_y[ms][:, :, None] * psi_x[ns][:, None, :]              # (n_modes, H, W)
     basis = modes.reshape(len(pairs), H * W).T.contiguous().to(torch.complex128)
-    return HGBasis(basis=basis, ni=ni, mi=mi, N=N, shape=(H, W))
+    return HGBasis(basis=basis, ns=ns, ms=ms, N=N, shape=(H, W))
 
 
-def coeffs_to_matrix(coef, ni, mi, N):
+def coeffs_to_matrix(coef, ns, ms, N):
     """Flat coefficient vector(s) (..., n_modes) -> complex array (..., N+1, N+1)
     indexed [n, m] (n along x, m along y). Handy for displaying/plotting."""
     coef = np.asarray(coef)
-    ni = torch.as_tensor(ni).cpu().numpy()
-    mi = torch.as_tensor(mi).cpu().numpy()
+    ns = torch.as_tensor(ns).cpu().numpy()
+    ms = torch.as_tensor(ms).cpu().numpy()
     out = np.zeros(coef.shape[:-1] + (N + 1, N + 1), dtype=complex)
-    out[..., ni, mi] = coef
+    out[..., ns, ms] = coef
     return out

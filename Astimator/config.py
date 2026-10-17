@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass
 class EstimationConfig:
-    device: str = "auto"     # "auto" | "cpu" | "cuda"  (AMD/ROCm torch builds also use "cuda")
+    device: str = "auto"     # "auto" | "cpu" | "cuda"  (Cuda or AMD/ROCm torch builds use "cuda")
     n_restarts: int = 10     # random restarts of L-BFGS-B per image
     sigma: float = 1.0       # noise scale in the least-squares loss
     maxiter: int = 5000

@@ -16,16 +16,16 @@ by image k. Pass it straight to Estimator.
 import torch
 
 
-def phase_factors(ni, mi, phis):
+def phase_factors(ns, ms, phis):
     """phis: K pairs (phi_x, phi_y) -> (K, n_modes) complex128 phases."""
-    phis = torch.as_tensor(phis, dtype=torch.float64, device=ni.device).reshape(-1, 2)
-    angle = phis[:, 0:1] * ni[None, :] + phis[:, 1:2] * mi[None, :]
+    phis = torch.as_tensor(phis, dtype=torch.float64, device=ns.device).reshape(-1, 2)
+    angle = phis[:, 0:1] * ns[None, :] + phis[:, 1:2] * ms[None, :]
     return torch.polar(torch.ones_like(angle), angle)
 
 
 def transform_hg_basis(hg, phis):
     """hg: HGBasis from make_hg_basis. Returns (K, n_pix, n_modes)."""
-    phase = phase_factors(hg.ni, hg.mi, phis)                  # (K, n_modes)
+    phase = phase_factors(hg.ns, hg.ms, phis)                  # (K, n_modes)
     return hg.basis[None, :, :] * phase[:, None, :]
 
 
@@ -38,5 +38,5 @@ def transform_basis(basis, hg, phis, rtol=None):
     """
     basis = torch.as_tensor(basis).to(device=hg.basis.device, dtype=torch.complex128)
     coeffs = torch.linalg.pinv(hg.basis, rtol=rtol) @ basis            # (n_hg, M), computed once
-    phase = phase_factors(hg.ni, hg.mi, phis)                          # (K, n_hg)
+    phase = phase_factors(hg.ns, hg.ms, phis)                          # (K, n_hg)
     return hg.basis @ (phase[:, :, None] * coeffs[None, :, :])         # (K, n_pix, M)
