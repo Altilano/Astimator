@@ -1,6 +1,6 @@
-# hg_lens_estimator
+# Astimator
 
-Estimate complex mode coefficients from several intensity pictures of the same
+The ASTIgmatic estiMATOR. Estimate complex mode coefficients from several intensity pictures of the same
 beam, each taken after a different transformation. PyTorch only.
 
 ```
@@ -38,9 +38,10 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 
 ## Conventions to verify once against your beam.py
 
-mode (n, m): n along x (columns), m along y (rows) · field ∝ H_n(√2x/w)e^(−x²/w²) ·
-grid centred at ((H−1)/2, (W−1)/2) (override with `center=`) · `norm="max1"`
-(each mode max = 1) or `"l2"`. If the coefficients look transposed or scaled,
+mode (n, m): n along x (columns), m along y (rows) · field ∝ H_n(√2x/w)e^(−x²/w²)/√(2ⁿn!) ·
+grid centred at ((H−1)/2, (W−1)/2) (override with `center=`), pitch = `pixel_size` ·
+`norm="hermite"` (default; the original script's scale), `"max1"` or `"l2"`.
+If the coefficients look transposed or scaled,
 this is where to look.
 
 ## Files

@@ -49,18 +49,21 @@ def _hermite_functions_1d(coord, waist, N):
     return psi
 
 
-def make_hg_basis(N, shape, pixel_size, waist, norm="max1", device="auto", center=None):
+def make_hg_basis(N, shape, pixel_size, waist, norm="hermite", device="auto", center=None):
     """
     N:          maximum HG order (modes with n + m <= N are built)
     shape:      (H, W) of ONE image
     pixel_size: camera pixel pitch (same length unit as waist)
     waist:      beam waist
-    norm:       "max1" -> every 2D mode has max |value| = 1 on the grid
-                "l2"   -> every 2D mode has sum |value|^2 = 1 on the grid
+    norm:       "hermite" (default) -> psi_n = H_n(u) exp(-u^2/2) / sqrt(2^n n!), u = sqrt(2) x/waist
+                                       (the scale of the recurrence; peak < 1 for n >= 1).
+                                       This is what the original script's hg_basis(norm1=True) uses.
+                "max1"   -> every 2D mode has max |value| = 1 on the grid
+                "l2"     -> every 2D mode has sum |value|^2 = 1 on the grid
     center:     (cy, cx) beam centre in pixels; default = image centre
     """
-    if norm not in ("max1", "l2"):
-        raise ValueError("norm must be 'max1' or 'l2'")
+    if norm not in ("hermite", "max1", "l2"):
+        raise ValueError("norm must be 'hermite', 'max1' or 'l2'")
     dev = resolve_device(device)
     H, W = shape
     cy, cx = center if center is not None else ((H - 1) / 2, (W - 1) / 2)
@@ -71,10 +74,11 @@ def make_hg_basis(N, shape, pixel_size, waist, norm="max1", device="auto", cente
     psi_y = _hermite_functions_1d(y, waist, N)    # (N+1, H)
 
     # Normalising the 1D profiles normalises the 2D modes too (separable product).
+    # norm == "hermite": keep the recurrence's own scale, nothing to do.
     if norm == "max1":
         psi_x = psi_x / psi_x.abs().amax(dim=1, keepdim=True)
         psi_y = psi_y / psi_y.abs().amax(dim=1, keepdim=True)
-    else:
+    elif norm == "l2":
         psi_x = psi_x / psi_x.pow(2).sum(dim=1, keepdim=True).sqrt()
         psi_y = psi_y / psi_y.pow(2).sum(dim=1, keepdim=True).sqrt()
 
