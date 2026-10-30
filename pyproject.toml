@@ -3,15 +3,15 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hg_estimator"
-version = "0.0.0"
+name = "Astimator"
+version = "0.0.1"
 description = "Estimate Hermite-Gauss mode coefficients from intensity images taken through a (tilted) lens."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["numpy", "scipy", "torch"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["Astimator"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
