@@ -42,4 +42,4 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 `pipeline.py` Estimator · `torch_engine.py` device + loss/grad · `hg_basis.py` ·
 `lens_transform.py` · `config.py` · `examples/run_estimation.py`
 
-### Made with Claude, based on a series of Jupyter notebook which were made by hand. Claude organized and fixed bugs.
+### Made with Claude, based on a series of Jupyter notebooks, which were made by hand. Claude organized and fixed bugs.
