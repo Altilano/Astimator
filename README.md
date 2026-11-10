@@ -45,7 +45,6 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 ## Files
 
 `pipeline.py` Estimator · `torch_engine.py` device + loss/grad · `hg_basis.py` ·
-<<<<<<< HEAD
 `lens_transform.py` · `lens_phase.py` · `config.py` · `examples/run_estimation.py`
 
 ### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
@@ -54,10 +53,5 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 
 If you use Astimator in your work, please cite it. GitHub reads `CITATION.cff` (the "Cite this repository"
 button); a BibTeX entry for LaTeX is in `CITATION.bib`.
-=======
-`lens_transform.py` · `config.py` · `examples/run_estimation.py`
-
-### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
->>>>>>> 168a5b9b17968efb992147822f121fd2f18db145
 
 ### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
