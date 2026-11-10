@@ -4,6 +4,8 @@ Turn a basis into the per-image transformed bases the Estimator needs.
 The tilted-lens transformation multiplies HG mode (n, m) by
     exp(i * (phi_x * n + phi_y * m)),
 one (phi_x, phi_y) pair per image -- the values you used to call ax, ay.
+Get them from lens_phase.calculate_phix_phiy (physical phase, -pi/2; pass
+flip_coordinates=True for mirrored pictures, e.g. after a 4F system).
 
   * transform_hg_basis: your basis IS the HG basis -> direct per-mode phase.
   * transform_basis:    your basis is anything else (same pixel grid) -> project

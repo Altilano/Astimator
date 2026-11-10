@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Astimator: the ASTIgmatic estiMATOR"
+abstract: >-
+  PyTorch package that estimates complex Hermite-Gauss mode coefficients of a
+  beam from several intensity pictures taken after different (tilted-lens)
+  transformations.
+type: software
+version: "0.0.1"
+date-released: "2026-11-10"          # TODO: set to the release/tag date
+authors:
+  - family-names: "FAMILY_NAME"      # TODO
+    given-names: "Altilano"          # TODO: full given names
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    # affiliation: "Your institution"
+repository-code: "https://github.com/USER/Astimator"   # TODO
+# license: MIT                       # TODO: add a LICENSE file and set its SPDX id
+# doi: "10.5281/zenodo.XXXXXXX"      # TODO: after archiving a release on Zenodo
+keywords:
+  - structured light
+  - Hermite-Gauss modes
+  - mode decomposition
+  - tilted lens
+  - PyTorch
