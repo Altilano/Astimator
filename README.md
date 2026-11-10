@@ -34,12 +34,30 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 - `transform_basis(my_basis, hg, phis)` — same for a non-HG basis: project onto
   `hg`, apply the phases, recombine. `hg`'s order must be high enough to
   represent `my_basis`.
+- `tilted_lens_focal_lengths(lens_type, theta_deg, f0, R, n)` — effective `(f_x, f_y)` of a tilted lens.
+- `calculate_phix_phiy(fx, fy, waistx, waisty, lamb, z0, z, flip_lens=False, flip_coordinates=False)` —
+  the `(phi_x, phi_y)` of a picture. Default is the physical phase (`... - pi/2`). With
+  `flip_coordinates=True` it uses `+pi/2`, which is what matches pictures mirrored w.r.t. the basis,
+  e.g. after a 4F system (the case of the original notebooks).
 - `coeffs_to_matrix(coef, ni, mi, N)` — flat coefficients → `[n, m]` matrix.
 
 
 ## Files
 
 `pipeline.py` Estimator · `torch_engine.py` device + loss/grad · `hg_basis.py` ·
+<<<<<<< HEAD
+`lens_transform.py` · `lens_phase.py` · `config.py` · `examples/run_estimation.py`
+
+### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
+
+## Citing
+
+If you use Astimator in your work, please cite it. GitHub reads `CITATION.cff` (the "Cite this repository"
+button); a BibTeX entry for LaTeX is in `CITATION.bib`.
+=======
 `lens_transform.py` · `config.py` · `examples/run_estimation.py`
+
+### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
+>>>>>>> 168a5b9b17968efb992147822f121fd2f18db145
 
 ### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
