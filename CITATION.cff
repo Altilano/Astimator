@@ -7,13 +7,13 @@ abstract: >-
   transformations.
 type: software
 version: "0.0.1"
-date-released: "2026-11-10"          # TODO: set to the release/tag date
+date-released: "2026-10-27"          
 authors:
-  - family-names: "FAMILY_NAME"      # TODO
-    given-names: "Altilano"          # TODO: full given names
-    # orcid: "https://orcid.org/0000-0000-0000-0000"
-    # affiliation: "Your institution"
-repository-code: "https://github.com/USER/Astimator"   # TODO
+  - family-names: "C. Barbosa"      
+    given-names: "Altilano"          
+    orcid: "https://orcid.org/0000-0003-1971-0451"
+    affiliation: "Universidade Federal Fluminense (UFF), Brasil"
+repository-code: "https://github.com/Altilano/Astimator" 
 # license: MIT                       # TODO: add a LICENSE file and set its SPDX id
 # doi: "10.5281/zenodo.XXXXXXX"      # TODO: after archiving a release on Zenodo
 keywords:
