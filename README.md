@@ -42,4 +42,4 @@ result = est.estimate(images)     # dict: results, coeffs (n_restarts, M), best 
 `pipeline.py` Estimator · `torch_engine.py` device + loss/grad · `hg_basis.py` ·
 `lens_transform.py` · `config.py` · `examples/run_estimation.py`
 
-### Made with Claude, based on a series of Jupyter notebooks, which were made by hand. Claude organized and fixed bugs.
+### Made with Claude, based on a series of Jupyter notebooks used in the scientific paper "High-Dimensional Structured Light Tomography with a Tilted Lens". The Jupyter notebooks were made by hand. Claude organized and fixed bugs.
