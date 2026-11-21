@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Astimator"
-version = "0.0.2"
+version = "0.0.3"
 description = "Estimate Hermite-Gauss mode coefficients from intensity images taken through a (tilted) lens."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["numpy", "scipy", "torch"]
 
 [tool.setuptools.packages.find]
-where = ["Astimator"]
+include = ["Astimator*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
