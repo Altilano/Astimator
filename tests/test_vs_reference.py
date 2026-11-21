@@ -7,7 +7,7 @@ HOW TO RUN
    PATH_FOLDER, it is searched there too).
 2. Set PATH_FOLDER below (or the environment variable PATH_FOLDER). It is the
    folder that contains
-       data_cheat/<FOLDER>/random_modes_N*_f0.300_z*_theta*.h5
+       <DATA_SUBDIR>/<FOLDER>/random_modes_N*_f0.300_z*_theta*.h5   (DATA_SUBDIR = data_treated)
        coefs_modes/random_modes_N*.h5
    and also structured_optics.py, utils_lens.py, utils_img.py (the original
    script's own imports).
@@ -29,7 +29,7 @@ inside a `for N` loop and cannot be imported) is copied, in `build_reference`.
 
 Mode ordering: the script uses a full (N+1)x(N+1) grid [i, j] and keeps the
 entries with ni+mi<=N; the package uses a flat list of modes. The tests map
-modes by their (n, m) values (taken from the script's own `hg_proj`), so
+modes by their (n, m) values (ni, mi = meshgrid(..., indexing='ij'), as in the corrected script), so
 a different ordering is NOT a failure, but a different (n, m) meaning is.
 """
 import ast
@@ -50,17 +50,18 @@ from Astimator.torch_engine import TorchEngine
 # =============================================================================
 # CONFIG  -- edit here
 # =============================================================================
-# Folder with data_cheat/, coefs_modes/ and the reference modules
+# Folder with the data sub-folder below, coefs_modes/ and the reference modules
 # (structured_optics, utils_lens, utils_img).  Env var PATH_FOLDER overrides it.
-PATH_FOLDER = os.environ.get("PATH_FOLDER", r"C:/Python/tilted_lens")
+PATH_FOLDER = os.environ.get("PATH_FOLDER", r"C:/Users/altil/Documents/Python/tilted_lens")
 
 # Where the original script is. Default: repo root, then PATH_FOLDER.
 REFERENCE_SCRIPT = os.environ.get("REFERENCE_SCRIPT", "")
 
 # Same constants as in estimate_pytorch.py
+DATA_SUBDIR = "data_treated"     # the corrected script reads data_treated/ (the old one data_cheat/)
 FOLDER = "biconvex_stretched_gaussref_equalsize"
 PIXEL_SIZE = 2.4e-6
-RES = 230
+RES = 232
 Z1, THETA1 = 30e-2, 0
 Z2, THETA2 = 22e-2, 20
 LAMB, F_LENS, N_GLASS = 633e-9, 30e-2, 1.5151
@@ -78,7 +79,8 @@ TEST_WAISTS = (1.2e-4, 1.5e-4)   # waists for the data-free tests (differ on pur
 # these tests; test_diagnose_reference_grid re-checks them against your Beam class):
 NORM = "hermite"                         # script's hg_basis(norm1=True) = H_n/sqrt(2^n n!)
 GRID_PITCH = RES * PIXEL_SIZE / (RES - 1)   # script's Beam grid: linspace(-nix, nix, res)
-SWAP_AXES = True    # script's `ni` (the index multiplying phix) is the order along image ROWS (y)
+SWAP_AXES = False   # corrected script: ni (multiplies phix) = order along image COLUMNS (x) = package's n.
+                    # (the OLD script, with ni/mi from hg_proj, needed True). The diagnostic test re-checks it.
 
 # Tolerances
 BASIS_ATOL = 1e-8           # |s*basis_pkg - basis_script|, after removing one global scale s
@@ -120,7 +122,7 @@ def ref():
         import utils_img as ui
     except ImportError as e:
         pytest.skip(f"cannot import reference modules from {PATH_FOLDER}: {e}")
-    return SimpleNamespace(Beam=so.Beam, hg_proj=so.hg_proj, hg_basis=so.hg_basis,
+    return SimpleNamespace(Beam=so.Beam, hg_basis=so.hg_basis,
                            tilted_lens_focal_lengths=ul.tilted_lens_focal_lengths,
                            calculate_phix_phiy=ul.calculate_phix_phiy,
                            fit_beam_widths=ui.fit_beam_widths)
@@ -144,7 +146,8 @@ def _reference_columns(ref, N, waist):
     beam = ref.Beam(nix=RES * PIXEL_SIZE / 2, niy=RES * PIXEL_SIZE / 2,
                     Dx=RES, Dy=RES, lamb=633e-9, waist=waist)
     beam.hg(0, 0)
-    ni, mi, _overlap = ref.hg_proj(beam, N)
+    # corrected script: column index = i*(N+1)+j  ->  ni = i, mi = j
+    ni, mi = np.meshgrid(np.arange(N + 1), np.arange(N + 1), indexing='ij')
     beam.waist = waist
     basis = ref.hg_basis(beam, N, norm1=True)
     Bmat = np.array([basis[i, j].ravel() for i in range(N + 1) for j in range(N + 1)]).T
@@ -182,7 +185,7 @@ def build_reference(ref, N, w1, w2):
                  valid_indices_t=torch.tensor(valid_indices, dtype=torch.long, device=DEVICE),
                  A_np=np.zeros((N + 1, N + 1), dtype=complex))
 
-    out = SimpleNamespace(N=N, w1=w1, w2=w2, funcs=funcs, n_valid=n_valid,
+    out = SimpleNamespace(N=N, w1=w1, w2=w2, funcs=funcs, n_valid=n_valid, valid=valid,
                           valid_indices=valid_indices, ni_flat=ni_flat, mi_flat=mi_flat,
                           B_stacked_full=B_stacked_full, B_valid=B_valid,
                           phis=[(float(phix1), float(phiy1)), (float(phix2), float(phiy2))])
@@ -255,8 +258,8 @@ def fidelity(a, b):
 def load_dataset(N):
     h5py = pytest.importorskip("h5py")
     root = Path(PATH_FOLDER)
-    p1 = root / "data_cheat" / FOLDER / f"random_modes_N{N}_f0.300_z{Z1:.3f}_theta{THETA1:.3f}.h5"
-    p2 = root / "data_cheat" / FOLDER / f"random_modes_N{N}_f0.300_z{Z2:.3f}_theta{THETA2:.3f}.h5"
+    p1 = root / DATA_SUBDIR / FOLDER / f"random_modes_N{N}_f0.300_z{Z1:.3f}_theta{THETA1:.3f}.h5"
+    p2 = root / DATA_SUBDIR / FOLDER / f"random_modes_N{N}_f0.300_z{Z2:.3f}_theta{THETA2:.3f}.h5"
     pc = root / "coefs_modes" / f"random_modes_N{N}.h5"
     for p in (p1, p2, pc):
         if not p.is_file():
@@ -267,6 +270,10 @@ def load_dataset(N):
             return np.asarray(fh[key])
 
     imgs1, imgs2 = read(p1, "images"), read(p2, "images")
+    for name, im in (("z1", imgs1), ("z2", imgs2)):
+        if im.shape[1:] != (RES, RES):
+            pytest.fail(f"images of the {name} file are {im.shape[1]}x{im.shape[2]} but the test has "
+                        f"RES={RES}: set RES (and PIXEL_SIZE) at the top of this file to the script's values")
     imgs1 = imgs1 / imgs1.max(axis=(1, 2), keepdims=True)       # same as the script
     imgs2 = imgs2 / imgs2.max(axis=(1, 2), keepdims=True)
     return SimpleNamespace(combined=np.concatenate([imgs1, imgs2], axis=1),   # (n, 2*RES, RES)
@@ -287,7 +294,7 @@ def run_reference_fit(setup, img_ravel, x0):
     data_t = torch.tensor(img_ravel, dtype=torch.float64, device=DEVICE)
     res = minimize(f["loss_np"], x0, args=(B_t, data_t, SIGMA), method="L-BFGS-B",
                    jac=f["grad_np"], tol=1e-12, options={"maxiter": 5000})
-    A = f["vector_to_matrix_np"](res.x, setup.N)
+    A = f["vector_to_matrix_np"](res.x, setup.valid, setup.n_valid)
     return float(res.fun), A / np.sqrt(np.sum(np.abs(A) ** 2))
 
 
@@ -299,6 +306,46 @@ def basis_for_estimator(source, setup, hg, perm):
 
 def close_enough(l_a, l_b):
     return l_a <= l_b * (1 + OPT_LOSS_RTOL) + OPT_LOSS_ATOL
+
+
+# =============================================================================
+# 0. The constants at the top of this file must be the script's
+# =============================================================================
+def _script_constants(path):
+    """Top-level `name = <literal>` assignments of the script (also `a = b = x`, `a, b = x, y`)."""
+    out = {}
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        if not isinstance(node, ast.Assign):
+            continue
+        try:
+            value = ast.literal_eval(node.value)
+        except Exception:
+            continue
+        for tgt in node.targets:
+            if isinstance(tgt, ast.Name):
+                out[tgt.id] = value
+            elif isinstance(tgt, ast.Tuple) and isinstance(value, tuple) and len(tgt.elts) == len(value):
+                for e, v in zip(tgt.elts, value):
+                    if isinstance(e, ast.Name):
+                        out[e.id] = v
+    return out
+
+
+def test_constants_match_script():
+    consts = _script_constants(_find_reference_script())
+    mine = {"res": RES, "pixel_size": PIXEL_SIZE, "folder": FOLDER, "lamb": LAMB, "f": F_LENS,
+            "n": N_GLASS, "waistx": WAISTX, "waisty": WAISTY, "z0": Z0, "z1": Z1, "theta1": THETA1,
+            "z2": Z2, "theta2": THETA2, "sigma": SIGMA, "num_rep": NUM_REP, "plus_N": 0}
+    bad = []
+    for name, value in mine.items():
+        if name not in consts:
+            continue
+        theirs = consts[name]
+        same = (np.isclose(theirs, value, rtol=1e-12, atol=0) if isinstance(value, (int, float))
+                and isinstance(theirs, (int, float)) else theirs == value)
+        if not same:
+            bad.append(f"{name}: this file has {value!r}, the script has {theirs!r}")
+    assert not bad, "constants at the top of the test differ from the script:\n  " + "\n  ".join(bad)
 
 
 # =============================================================================
